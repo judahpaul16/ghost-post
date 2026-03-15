@@ -1,0 +1,144 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]')"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Determine version
+        id: version
+        run: |
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          VERSION=${LATEST_TAG#v}
+          MAJOR=$(echo $VERSION | cut -d. -f1)
+          MINOR=$(echo $VERSION | cut -d. -f2)
+          PATCH=$(echo $VERSION | cut -d. -f3)
+
+          if [ "$LATEST_TAG" = "v0.0.0" ]; then
+            COMMIT_MESSAGES=$(git log --pretty=format:"%s" HEAD)
+          else
+            COMMIT_MESSAGES=$(git log --pretty=format:"%s" ${LATEST_TAG}..HEAD)
+          fi
+
+          if echo "$COMMIT_MESSAGES" | grep -qi "\[major update\]"; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif echo "$COMMIT_MESSAGES" | grep -qi "\[minor update\]"; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+
+          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "latest_tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          LATEST_TAG="${{ steps.version.outputs.latest_tag }}"
+          NEW_VERSION="${{ steps.version.outputs.version }}"
+
+          {
+            echo "## What's Changed"
+            echo ""
+            if [ "$LATEST_TAG" = "v0.0.0" ]; then
+              git log --pretty=format:"- %h %s" HEAD | grep -viE "^- \w+ (Merge|CI:|Bump version|\[skip ci\]|\[ci skip\])" || true
+            else
+              git log --pretty=format:"- %h %s" ${LATEST_TAG}..HEAD | grep -viE "^- \w+ (Merge|CI:|Bump version|\[skip ci\]|\[ci skip\])" || true
+            fi
+            echo ""
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${LATEST_TAG}...${NEW_VERSION}"
+          } > changelog.md
+
+          echo "Generated changelog:"
+          cat changelog.md
+
+      - name: Package extension
+        run: |
+          cd dist
+          zip -r ../ghost-post-${{ steps.version.outputs.version }}.zip .
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag ${{ steps.version.outputs.version }}
+          git push origin ${{ steps.version.outputs.version }}
+          gh release create ${{ steps.version.outputs.version }} \
+            ghost-post-${{ steps.version.outputs.version }}.zip \
+            --title "${{ steps.version.outputs.version }}" \
+            --notes-file changelog.md
+
+  # ──────────────────────────────────────────────────────────────
+  # Chrome Web Store Publishing
+  # ──────────────────────────────────────────────────────────────
+  # Uncomment when ready to auto-publish.
+  #
+  # Prerequisites:
+  #   1. Register at https://chrome.google.com/webstore/developer ($5 one-time)
+  #   2. Create extension manually in Developer Dashboard
+  #   3. Complete store listing + privacy sections
+  #   4. Enable 2-step verification on your Google account
+  #   5. Google Cloud Console: enable Chrome Web Store API
+  #   6. Create OAuth 2.0 Client ID (Web application)
+  #      - Redirect URI: https://developers.google.com/oauthplayground
+  #   7. Generate refresh token via OAuth Playground:
+  #      - Scope: https://www.googleapis.com/auth/chromewebstore
+  #   8. Add GitHub Secrets:
+  #      - CHROME_EXTENSION_ID
+  #      - CHROME_WEB_STORE_CLIENT_ID
+  #      - CHROME_WEB_STORE_CLIENT_SECRET
+  #      - CHROME_WEB_STORE_REFRESH_TOKEN
+  #
+  # Note: V1 API deprecated Oct 2026 — migrate to V2 API before then.
+  #
+  # publish:
+  #   needs: release
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: "20"
+  #         cache: "npm"
+  #
+  #     - run: npm ci
+  #     - run: npm run build
+  #
+  #     - name: Package extension
+  #       run: |
+  #         cd dist
+  #         zip -r ../extension.zip .
+  #
+  #     - name: Upload & Publish to Chrome Web Store
+  #       uses: browser-actions/release-chrome-extension@latest
+  #       with:
+  #         extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
+  #         extension-path: extension.zip
+  #         oauth-client-id: ${{ secrets.CHROME_WEB_STORE_CLIENT_ID }}
+  #         oauth-client-secret: ${{ secrets.CHROME_WEB_STORE_CLIENT_SECRET }}
+  #         oauth-refresh-token: ${{ secrets.CHROME_WEB_STORE_REFRESH_TOKEN }}

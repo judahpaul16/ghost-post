@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "Ghost Post",
+  "description": "Score job postings for likelihood of being ghost jobs",
+  "version": "0.0.1",
+  "icons": {
+    "16": "public/icons/icon-16.png",
+    "48": "public/icons/icon-48.png",
+    "128": "public/icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_icon": {
+      "16": "public/icons/icon-16.png",
+      "48": "public/icons/icon-48.png",
+      "128": "public/icons/icon-128.png"
+    }
+  },
+  "options_ui": {
+    "page": "src/options/index.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/jobs/*",
+        "https://www.linkedin.com/feed/*",
+        "https://*.greenhouse.io/*",
+        "https://*.lever.co/*",
+        "https://*.myworkdayjobs.com/*",
+        "https://www.indeed.com/*",
+        "https://*.ashbyhq.com/*",
+        "https://*.oraclecloud.com/hcmUI/CandidateExperience/*",
+        "https://*/*job*",
+        "https://*/*career*",
+        "https://*/*Job*",
+        "https://*/*Career*"
+      ],
+      "js": ["src/content/index.ts"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": ["storage", "activeTab", "scripting"],
+  "optional_host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "https://api.peopledatalabs.com/*",
+    "https://web.archive.org/*",
+    "https://api.airtable.com/*",
+    "https://hn.algolia.com/*",
+    "https://jsearch.p.rapidapi.com/*"
+  ]
+}
