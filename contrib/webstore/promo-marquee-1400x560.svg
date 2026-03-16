@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 560" width="1400" height="560">
+  <defs>
+    <linearGradient id="mbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#18181b"/>
+      <stop offset="100%" stop-color="#09090b"/>
+    </linearGradient>
+    <linearGradient id="mghost" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="mbarGrad" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#6b21a8"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <filter id="mglow">
+      <feGaussianBlur stdDeviation="15" result="blur"/>
+      <feFlood flood-color="#7c3aed" flood-opacity="0.25"/>
+      <feComposite in2="blur" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+    <filter id="mshadow">
+      <feDropShadow dx="0" dy="6" stdDeviation="16" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <rect width="1400" height="560" fill="url(#mbg)"/>
+
+  <!-- Subtle grid -->
+  <g opacity="0.025">
+    <pattern id="mgrid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#fff" stroke-width="0.5"/>
+    </pattern>
+    <rect width="1400" height="560" fill="url(#mgrid)"/>
+  </g>
+
+  <!-- Decorative glow -->
+  <circle cx="400" cy="280" r="200" fill="#7c3aed" opacity="0.04"/>
+  <circle cx="1000" cy="300" r="250" fill="#22d3ee" opacity="0.03"/>
+
+  <!-- Left side: branding -->
+  <g transform="translate(120, 140)">
+    <!-- Ghost icon -->
+    <g transform="translate(0, 50) scale(3.5)" filter="url(#mglow)">
+      <path d="M0-16C-8.8-16-16-8.8-16 0v17.4c0 2.1.8 2.8 1.6.9l3.9-3.9 3.9 3.9c.6.6 1.6.6 2.2 0L0 14.2l4.4 4.1c.6.6 1.6.6 2.2 0l3.9-3.9 3.9 3.9c.8.5 1.6.3 1.6-.9V0C16-8.8 8.8-16 0-16z" fill="url(#mghost)"/>
+      <circle cx="-5" cy="-2" r="3.2" fill="#000"/>
+      <circle cx="5" cy="-2" r="3.2" fill="#000"/>
+    </g>
+
+    <text x="80" y="20" font-family="Inter, system-ui, sans-serif" font-size="52" font-weight="700" fill="#fafafa" letter-spacing="-1">Ghost Post</text>
+    <text x="80" y="60" font-family="Inter, system-ui, sans-serif" font-size="20" fill="#a1a1aa">Detect ghost job postings</text>
+    <text x="80" y="88" font-family="Inter, system-ui, sans-serif" font-size="20" fill="#a1a1aa">before you apply</text>
+
+    <!-- Feature pills -->
+    <g transform="translate(80, 120)">
+      <rect width="120" height="30" rx="15" fill="#22c55e" opacity="0.1" stroke="#22c55e" stroke-width="1" stroke-opacity="0.3"/>
+      <text x="60" y="20" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" fill="#22c55e">10+ Signals</text>
+    </g>
+    <g transform="translate(215, 120)">
+      <rect width="130" height="30" rx="15" fill="#a855f7" opacity="0.1" stroke="#a855f7" stroke-width="1" stroke-opacity="0.3"/>
+      <text x="65" y="20" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" fill="#a855f7">SEC 10-K Data</text>
+    </g>
+    <g transform="translate(360, 120)">
+      <rect width="110" height="30" rx="15" fill="#22d3ee" opacity="0.1" stroke="#22d3ee" stroke-width="1" stroke-opacity="0.3"/>
+      <text x="55" y="20" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" fill="#22d3ee">Free to Use</text>
+    </g>
+  </g>
+
+  <!-- Right side: mini popup mockup -->
+  <g transform="translate(750, 60)" filter="url(#mshadow)">
+    <rect width="280" height="380" rx="14" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+
+    <!-- Score -->
+    <g transform="translate(140, 70)">
+      <circle cx="0" cy="0" r="40" fill="none" stroke="#27272a" stroke-width="5"/>
+      <circle cx="0" cy="0" r="40" fill="none" stroke="#ef4444" stroke-width="5" stroke-dasharray="251.3" stroke-dashoffset="70" stroke-linecap="round" transform="rotate(-90)"/>
+      <text x="0" y="8" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="700" fill="#ef4444">72</text>
+      <text x="0" y="26" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#71717a">Likely Ghost</text>
+    </g>
+
+    <text x="140" y="135" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" fill="#e4e4e7">Marketing Manager</text>
+    <text x="140" y="152" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#71717a">Acme Corp</text>
+
+    <!-- Signals -->
+    <g transform="translate(20, 175)">
+      <circle cx="6" cy="6" r="3.5" fill="#ef4444"/>
+      <text x="18" y="10" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#a1a1aa">Posted 65 days ago</text>
+      <text x="258" y="10" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#ef4444">+25</text>
+    </g>
+    <g transform="translate(20, 203)">
+      <circle cx="6" cy="6" r="3.5" fill="#ef4444"/>
+      <text x="18" y="10" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#a1a1aa">Recent layoffs (Feb 2026)</text>
+      <text x="258" y="10" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#ef4444">+25</text>
+    </g>
+    <g transform="translate(20, 231)">
+      <circle cx="6" cy="6" r="3.5" fill="#ef4444"/>
+      <text x="18" y="10" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#a1a1aa">URL seen 94 days ago</text>
+      <text x="258" y="10" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#ef4444">+15</text>
+    </g>
+    <g transform="translate(20, 259)">
+      <circle cx="6" cy="6" r="3.5" fill="#ef4444"/>
+      <text x="18" y="10" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#a1a1aa">Headcount dropped 18% YoY</text>
+      <text x="258" y="10" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#ef4444">+15</text>
+    </g>
+    <g transform="translate(20, 287)">
+      <circle cx="6" cy="6" r="3.5" fill="#eab308"/>
+      <text x="18" y="10" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#a1a1aa">No structured data</text>
+      <text x="258" y="10" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#eab308">+5</text>
+    </g>
+    <g transform="translate(20, 315)">
+      <circle cx="6" cy="6" r="3.5" fill="#22c55e"/>
+      <text x="18" y="10" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#a1a1aa">Found on Lever careers</text>
+      <text x="258" y="10" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#22c55e">-5</text>
+    </g>
+    <g transform="translate(20, 343)">
+      <circle cx="6" cy="6" r="3.5" fill="#22c55e"/>
+      <text x="18" y="10" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#a1a1aa">Listed on 2 other platforms</text>
+      <text x="258" y="10" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="600" fill="#22c55e">-5</text>
+    </g>
+  </g>
+
+  <!-- Mini chart preview -->
+  <g transform="translate(1070, 120)" filter="url(#mshadow)">
+    <rect width="220" height="260" rx="12" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+    <text x="16" y="28" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" fill="#e4e4e7">Headcount Trend</text>
+    <text x="16" y="44" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#71717a">SEC 10-K Employee Data</text>
+
+    <!-- Mini bars -->
+    <rect x="30" y="130" width="22" height="100" rx="3" fill="url(#mbarGrad)"/>
+    <rect x="62" y="115" width="22" height="115" rx="3" fill="url(#mbarGrad)"/>
+    <rect x="94" y="105" width="22" height="125" rx="3" fill="url(#mbarGrad)"/>
+    <rect x="126" y="95" width="22" height="135" rx="3" fill="url(#mbarGrad)"/>
+    <rect x="158" y="110" width="22" height="120" rx="3" fill="url(#mbarGrad)"/>
+
+    <!-- Mini line -->
+    <path d="M73,90 C89,90 89,80 105,80 C121,80 121,75 137,75 C153,75 153,100 169,100" fill="none" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="73" cy="90" r="2.5" fill="#22d3ee"/>
+    <circle cx="105" cy="80" r="2.5" fill="#22d3ee"/>
+    <circle cx="137" cy="75" r="2.5" fill="#22d3ee"/>
+    <circle cx="169" cy="100" r="2.5" fill="#22d3ee"/>
+
+    <!-- Year labels -->
+    <text x="41" y="245" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#71717a">2021</text>
+    <text x="73" y="245" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#71717a">2022</text>
+    <text x="105" y="245" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#71717a">2023</text>
+    <text x="137" y="245" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#71717a">2024</text>
+    <text x="169" y="245" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#71717a">2025</text>
+  </g>
+
+  <!-- Bottom text -->
+  <text x="700" y="510" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="15" fill="#52525b">
+    Works on LinkedIn, Indeed, Greenhouse, Lever, Workday, and any custom job board
+  </text>
+</svg>

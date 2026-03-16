@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800">
+  <defs>
+    <linearGradient id="bgGrad3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#18181b"/>
+      <stop offset="100%" stop-color="#09090b"/>
+    </linearGradient>
+    <filter id="shadow3">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="800" fill="url(#bgGrad3)"/>
+
+  <g opacity="0.03">
+    <pattern id="grid3" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#fff" stroke-width="0.5"/>
+    </pattern>
+    <rect width="1280" height="800" fill="url(#grid3)"/>
+  </g>
+
+  <!-- Title -->
+  <text x="640" y="80" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="700" fill="#fafafa" letter-spacing="-1">
+    10+ Cross-Referenced Signals
+  </text>
+  <text x="640" y="120" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="20" fill="#71717a">
+    Every signal links to its source data for full transparency
+  </text>
+
+  <!-- Signal cards grid -->
+  <!-- Row 1 -->
+  <g transform="translate(80, 170)" filter="url(#shadow3)">
+    <rect width="350" height="110" rx="12" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+    <circle cx="30" cy="35" r="10" fill="#22c55e" opacity="0.2"/>
+    <circle cx="30" cy="35" r="5" fill="#22c55e"/>
+    <text x="50" y="32" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="#e4e4e7">Posting Age</text>
+    <text x="320" y="32" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#22c55e">-5</text>
+    <text x="50" y="52" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#71717a">Posted 3 days ago</text>
+    <text x="30" y="85" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#52525b">Source: Page Data</text>
+  </g>
+
+  <g transform="translate(465, 170)" filter="url(#shadow3)">
+    <rect width="350" height="110" rx="12" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+    <circle cx="30" cy="35" r="10" fill="#22c55e" opacity="0.2"/>
+    <circle cx="30" cy="35" r="5" fill="#22c55e"/>
+    <text x="50" y="32" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="#e4e4e7">ATS Verification</text>
+    <text x="320" y="32" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#22c55e">-5</text>
+    <text x="50" y="52" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#71717a">Found on Greenhouse careers page</text>
+    <text x="30" y="85" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#52525b">Source: ATS Verification</text>
+  </g>
+
+  <g transform="translate(850, 170)" filter="url(#shadow3)">
+    <rect width="350" height="110" rx="12" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+    <circle cx="30" cy="35" r="10" fill="#22c55e" opacity="0.2"/>
+    <circle cx="30" cy="35" r="5" fill="#22c55e"/>
+    <text x="50" y="32" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="#e4e4e7">HN Hiring Threads</text>
+    <text x="320" y="32" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#22c55e">-5</text>
+    <text x="50" y="52" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#71717a">Found in 3 recent threads</text>
+    <text x="30" y="85" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#52525b">Source: HN Algolia</text>
+  </g>
+
+  <!-- Row 2 -->
+  <g transform="translate(80, 310)" filter="url(#shadow3)">
+    <rect width="350" height="110" rx="12" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+    <circle cx="30" cy="35" r="10" fill="#22c55e" opacity="0.2"/>
+    <circle cx="30" cy="35" r="5" fill="#22c55e"/>
+    <text x="50" y="32" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="#e4e4e7">SEC Headcount</text>
+    <text x="320" y="32" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#22c55e">-5</text>
+    <text x="50" y="52" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#71717a">Headcount grew +12% YoY</text>
+    <text x="30" y="85" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#52525b">Source: SEC EDGAR 10-K</text>
+  </g>
+
+  <g transform="translate(465, 310)" filter="url(#shadow3)">
+    <rect width="350" height="110" rx="12" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+    <circle cx="30" cy="35" r="10" fill="#22c55e" opacity="0.2"/>
+    <circle cx="30" cy="35" r="5" fill="#22c55e"/>
+    <text x="50" y="32" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="#e4e4e7">Cross-Platform</text>
+    <text x="320" y="32" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#22c55e">-5</text>
+    <text x="50" y="52" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#71717a">Listed on 4 other platforms</text>
+    <text x="30" y="85" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#52525b">Source: JSearch</text>
+  </g>
+
+  <g transform="translate(850, 310)" filter="url(#shadow3)">
+    <rect width="350" height="110" rx="12" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+    <circle cx="30" cy="35" r="10" fill="#eab308" opacity="0.2"/>
+    <circle cx="30" cy="35" r="5" fill="#eab308"/>
+    <text x="50" y="32" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="#e4e4e7">Structured Data</text>
+    <text x="320" y="32" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#eab308">+5</text>
+    <text x="50" y="52" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#71717a">No schema.org markup found</text>
+    <text x="30" y="85" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#52525b">Source: Page Data</text>
+  </g>
+
+  <!-- Row 3 -->
+  <g transform="translate(80, 450)" filter="url(#shadow3)">
+    <rect width="350" height="110" rx="12" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+    <circle cx="30" cy="35" r="10" fill="#ef4444" opacity="0.2"/>
+    <circle cx="30" cy="35" r="5" fill="#ef4444"/>
+    <text x="50" y="32" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="#e4e4e7">Recent Layoffs</text>
+    <text x="320" y="32" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#ef4444">+25</text>
+    <text x="50" y="52" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#71717a">450 employees laid off (Feb 2026)</text>
+    <text x="30" y="85" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#52525b">Source: layoffs.fyi</text>
+  </g>
+
+  <g transform="translate(465, 450)" filter="url(#shadow3)">
+    <rect width="350" height="110" rx="12" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+    <circle cx="30" cy="35" r="10" fill="#ef4444" opacity="0.2"/>
+    <circle cx="30" cy="35" r="5" fill="#ef4444"/>
+    <text x="50" y="32" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="#e4e4e7">Wayback Machine</text>
+    <text x="320" y="32" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#ef4444">+15</text>
+    <text x="50" y="52" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#71717a">URL first seen 94 days ago</text>
+    <text x="30" y="85" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#52525b">Source: Wayback Machine</text>
+  </g>
+
+  <g transform="translate(850, 450)" filter="url(#shadow3)">
+    <rect width="350" height="110" rx="12" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+    <circle cx="30" cy="35" r="10" fill="#ef4444" opacity="0.2"/>
+    <circle cx="30" cy="35" r="5" fill="#ef4444"/>
+    <text x="50" y="32" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="#e4e4e7">Posting Age</text>
+    <text x="320" y="32" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" fill="#ef4444">+25</text>
+    <text x="50" y="52" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#71717a">Posted 72 days ago</text>
+    <text x="30" y="85" font-family="Inter, system-ui, sans-serif" font-size="10" fill="#52525b">Source: Page Data</text>
+  </g>
+
+  <!-- Bottom caption -->
+  <text x="640" y="640" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="16" fill="#52525b">
+    Green = positive signal (-points)  |  Yellow = minor concern (+points)  |  Red = major concern (+points)
+  </text>
+
+  <!-- Score examples -->
+  <g transform="translate(240, 680)">
+    <rect width="200" height="60" rx="10" fill="#052e16" stroke="#166534" stroke-width="1"/>
+    <circle cx="40" cy="30" r="18" fill="none" stroke="#22c55e" stroke-width="3"/>
+    <text x="40" y="36" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="700" fill="#22c55e">12</text>
+    <text x="75" y="26" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" fill="#22c55e">Likely Real</text>
+    <text x="75" y="42" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#4ade80">Score 0-25</text>
+  </g>
+
+  <g transform="translate(540, 680)">
+    <rect width="200" height="60" rx="10" fill="#422006" stroke="#854d0e" stroke-width="1"/>
+    <circle cx="40" cy="30" r="18" fill="none" stroke="#eab308" stroke-width="3"/>
+    <text x="40" y="36" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="700" fill="#eab308">38</text>
+    <text x="75" y="26" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" fill="#eab308">Caution</text>
+    <text x="75" y="42" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#fbbf24">Score 26-50</text>
+  </g>
+
+  <g transform="translate(840, 680)">
+    <rect width="200" height="60" rx="10" fill="#450a0a" stroke="#991b1b" stroke-width="1"/>
+    <circle cx="40" cy="30" r="18" fill="none" stroke="#ef4444" stroke-width="3"/>
+    <text x="40" y="36" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="700" fill="#ef4444">73</text>
+    <text x="75" y="26" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" fill="#ef4444">Likely Ghost</text>
+    <text x="75" y="42" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#f87171">Score 51-100</text>
+  </g>
+</svg>

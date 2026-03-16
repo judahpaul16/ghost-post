@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800">
+  <defs>
+    <linearGradient id="ghostGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#18181b"/>
+      <stop offset="100%" stop-color="#09090b"/>
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="8" stdDeviation="20" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="800" fill="url(#bgGrad)"/>
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.03">
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#fff" stroke-width="0.5"/>
+    </pattern>
+    <rect width="1280" height="800" fill="url(#grid)"/>
+  </g>
+
+  <!-- Title text -->
+  <text x="200" y="200" font-family="Inter, system-ui, sans-serif" font-size="56" font-weight="700" fill="#fafafa" letter-spacing="-1">
+    Is that job posting real?
+  </text>
+  <text x="200" y="260" font-family="Inter, system-ui, sans-serif" font-size="24" fill="#71717a" letter-spacing="0">
+    Ghost Post scores every listing so you don't waste your time.
+  </text>
+
+  <!-- Popup mockup -->
+  <g transform="translate(200, 320)" filter="url(#shadow)">
+    <rect width="340" height="420" rx="16" fill="#18181b" stroke="#27272a" stroke-width="1"/>
+
+    <!-- Header -->
+    <g transform="translate(20, 20)">
+      <g transform="translate(0, 0) scale(0.8)">
+        <path d="M12 2C7.6 2 4 5.6 4 10v10.5c0 .6.4.8.9.5l2.1-2.1 2.1 2.1c.3.3.9.3 1.2 0L12 19.4l1.7 1.6c.3.3.9.3 1.2 0l2.1-2.1 2.1 2.1c.5.3.9.1.9-.5V10c0-4.4-3.6-8-8-8zM9 12a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm6 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3z" fill="url(#ghostGrad)"/>
+      </g>
+      <text x="28" y="16" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="600" fill="#fafafa">Ghost Post</text>
+    </g>
+
+    <!-- Score circle -->
+    <g transform="translate(170, 100)">
+      <circle cx="0" cy="0" r="48" fill="none" stroke="#27272a" stroke-width="6"/>
+      <circle cx="0" cy="0" r="48" fill="none" stroke="#22c55e" stroke-width="6" stroke-dasharray="301.6" stroke-dashoffset="240" stroke-linecap="round" transform="rotate(-90)"/>
+      <text x="0" y="8" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="36" font-weight="700" fill="#22c55e">15</text>
+      <text x="0" y="28" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="11" fill="#71717a">Likely Real</text>
+    </g>
+
+    <!-- Company info -->
+    <text x="170" y="175" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="#e4e4e7">Senior Software Engineer</text>
+    <text x="170" y="195" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#71717a">Cisco Systems</text>
+
+    <!-- Signal rows -->
+    <g transform="translate(20, 220)">
+      <!-- Signal 1 - green -->
+      <g transform="translate(0, 0)">
+        <circle cx="6" cy="8" r="4" fill="#22c55e"/>
+        <text x="18" y="12" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#a1a1aa">Posted 3 days ago</text>
+        <text x="300" y="12" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" fill="#22c55e">-5</text>
+      </g>
+      <!-- Signal 2 - green -->
+      <g transform="translate(0, 32)">
+        <circle cx="6" cy="8" r="4" fill="#22c55e"/>
+        <text x="18" y="12" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#a1a1aa">Found on ATS careers page</text>
+        <text x="300" y="12" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" fill="#22c55e">-5</text>
+      </g>
+      <!-- Signal 3 - green -->
+      <g transform="translate(0, 64)">
+        <circle cx="6" cy="8" r="4" fill="#22c55e"/>
+        <text x="18" y="12" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#a1a1aa">Headcount +6% YoY (90,400 → 86,200)</text>
+        <text x="300" y="12" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" fill="#22c55e">0</text>
+      </g>
+      <!-- Signal 4 - yellow -->
+      <g transform="translate(0, 96)">
+        <circle cx="6" cy="8" r="4" fill="#eab308"/>
+        <text x="18" y="12" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#a1a1aa">No structured data found</text>
+        <text x="300" y="12" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" fill="#eab308">+5</text>
+      </g>
+      <!-- Signal 5 - green -->
+      <g transform="translate(0, 128)">
+        <circle cx="6" cy="8" r="4" fill="#22c55e"/>
+        <text x="18" y="12" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#a1a1aa">Listed on 4 other platforms</text>
+        <text x="300" y="12" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" fill="#22c55e">-5</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Right side feature callouts -->
+  <g transform="translate(640, 360)">
+    <g transform="translate(0, 0)">
+      <rect width="440" height="80" rx="12" fill="#1c1c20" stroke="#27272a" stroke-width="1"/>
+      <circle cx="40" cy="40" r="16" fill="#22c55e" opacity="0.15"/>
+      <text x="40" y="45" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="18" fill="#22c55e">10+</text>
+      <text x="72" y="34" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="600" fill="#e4e4e7">Independent Data Sources</text>
+      <text x="72" y="54" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#71717a">SEC filings, Wayback Machine, ATS, and more</text>
+    </g>
+    <g transform="translate(0, 100)">
+      <rect width="440" height="80" rx="12" fill="#1c1c20" stroke="#27272a" stroke-width="1"/>
+      <circle cx="40" cy="40" r="16" fill="#a855f7" opacity="0.15"/>
+      <text x="40" y="46" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="16" fill="#a855f7">0</text>
+      <text x="72" y="34" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="600" fill="#e4e4e7">Zero Configuration Required</text>
+      <text x="72" y="54" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#71717a">6 of 10 sources work out of the box</text>
+    </g>
+    <g transform="translate(0, 200)">
+      <rect width="440" height="80" rx="12" fill="#1c1c20" stroke="#27272a" stroke-width="1"/>
+      <circle cx="40" cy="40" r="16" fill="#22d3ee" opacity="0.15"/>
+      <path d="M33 40 L40 40 L40 33" fill="none" stroke="#22d3ee" stroke-width="2" stroke-linecap="round"/>
+      <text x="72" y="34" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="600" fill="#e4e4e7">Headcount Trend Charts</text>
+      <text x="72" y="54" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#71717a">10 years of SEC 10-K employee data at a glance</text>
+    </g>
+  </g>
+</svg>

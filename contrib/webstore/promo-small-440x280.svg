@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 280" width="440" height="280">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#18181b"/>
+      <stop offset="100%" stop-color="#09090b"/>
+    </linearGradient>
+    <linearGradient id="ghost" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <filter id="ghostGlow">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feFlood flood-color="#7c3aed" flood-opacity="0.3"/>
+      <feComposite in2="blur" operator="in"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+
+  <rect width="440" height="280" fill="url(#bg)"/>
+
+  <!-- Subtle radial glow -->
+  <circle cx="220" cy="110" r="120" fill="#7c3aed" opacity="0.06"/>
+
+  <!-- Ghost icon -->
+  <g transform="translate(220, 90) scale(2.8)" filter="url(#ghostGlow)">
+    <path d="M0-16C-8.8-16-16-8.8-16 0v17.4c0 2.1.8 2.8 1.6.9l3.9-3.9 3.9 3.9c.6.6 1.6.6 2.2 0L0 14.2l4.4 4.1c.6.6 1.6.6 2.2 0l3.9-3.9 3.9 3.9c.8.5 1.6.3 1.6-.9V0C16-8.8 8.8-16 0-16z" fill="url(#ghost)"/>
+    <circle cx="-5" cy="-2" r="3.2" fill="#000"/>
+    <circle cx="5" cy="-2" r="3.2" fill="#000"/>
+  </g>
+
+  <!-- Title -->
+  <text x="220" y="175" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="700" fill="#fafafa" letter-spacing="-0.5">
+    Ghost Post
+  </text>
+
+  <!-- Subtitle -->
+  <text x="220" y="205" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#a1a1aa">
+    Detect ghost job postings before
+  </text>
+  <text x="220" y="225" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="14" fill="#a1a1aa">
+    you waste your time applying
+  </text>
+
+  <!-- Score badges -->
+  <g transform="translate(120, 245)">
+    <circle cx="0" cy="0" r="10" fill="none" stroke="#22c55e" stroke-width="2"/>
+    <text x="0" y="4" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="8" font-weight="700" fill="#22c55e">12</text>
+  </g>
+  <g transform="translate(200, 245)">
+    <circle cx="0" cy="0" r="10" fill="none" stroke="#eab308" stroke-width="2"/>
+    <text x="0" y="4" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="8" font-weight="700" fill="#eab308">38</text>
+  </g>
+  <g transform="translate(280, 245)">
+    <circle cx="0" cy="0" r="10" fill="none" stroke="#ef4444" stroke-width="2"/>
+    <text x="0" y="4" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="8" font-weight="700" fill="#ef4444">73</text>
+  </g>
+  <text x="140" y="249" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#71717a">Real</text>
+  <text x="212" y="249" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#71717a">Caution</text>
+  <text x="295" y="249" font-family="Inter, system-ui, sans-serif" font-size="9" fill="#71717a">Ghost</text>
+</svg>

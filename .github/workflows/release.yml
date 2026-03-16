@@ -93,10 +93,8 @@ jobs:
             --notes-file changelog.md
 
   # ──────────────────────────────────────────────────────────────
-  # Chrome Web Store Publishing
+  # Chrome Web Store Publishing (V2 API)
   # ──────────────────────────────────────────────────────────────
-  # Uncomment when ready to auto-publish.
-  #
   # Prerequisites:
   #   1. Register at https://chrome.google.com/webstore/developer ($5 one-time)
   #   2. Create extension manually in Developer Dashboard
@@ -109,36 +107,69 @@ jobs:
   #      - Scope: https://www.googleapis.com/auth/chromewebstore
   #   8. Add GitHub Secrets:
   #      - CHROME_EXTENSION_ID
+  #      - CHROME_PUBLISHER_ID (find at: chrome.google.com/webstore/devconsole)
   #      - CHROME_WEB_STORE_CLIENT_ID
   #      - CHROME_WEB_STORE_CLIENT_SECRET
   #      - CHROME_WEB_STORE_REFRESH_TOKEN
-  #
-  # Note: V1 API deprecated Oct 2026 — migrate to V2 API before then.
-  #
-  # publish:
-  #   needs: release
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: "20"
-  #         cache: "npm"
-  #
-  #     - run: npm ci
-  #     - run: npm run build
-  #
-  #     - name: Package extension
-  #       run: |
-  #         cd dist
-  #         zip -r ../extension.zip .
-  #
-  #     - name: Upload & Publish to Chrome Web Store
-  #       uses: browser-actions/release-chrome-extension@latest
-  #       with:
-  #         extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
-  #         extension-path: extension.zip
-  #         oauth-client-id: ${{ secrets.CHROME_WEB_STORE_CLIENT_ID }}
-  #         oauth-client-secret: ${{ secrets.CHROME_WEB_STORE_CLIENT_SECRET }}
-  #         oauth-refresh-token: ${{ secrets.CHROME_WEB_STORE_REFRESH_TOKEN }}
+
+  publish:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Package extension
+        run: |
+          cd dist
+          zip -r ../extension.zip .
+
+      - name: Get access token
+        id: auth
+        run: |
+          RESPONSE=$(curl -s -X POST https://oauth2.googleapis.com/token \
+            -d "client_id=${{ secrets.CHROME_WEB_STORE_CLIENT_ID }}" \
+            -d "client_secret=${{ secrets.CHROME_WEB_STORE_CLIENT_SECRET }}" \
+            -d "refresh_token=${{ secrets.CHROME_WEB_STORE_REFRESH_TOKEN }}" \
+            -d "grant_type=refresh_token")
+          TOKEN=$(echo "$RESPONSE" | jq -r '.access_token')
+          if [ "$TOKEN" = "null" ] || [ -z "$TOKEN" ]; then
+            echo "Failed to get access token: $RESPONSE"
+            exit 1
+          fi
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Upload to Chrome Web Store (V2 API)
+        run: |
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X PUT "https://chromewebstore.googleapis.com/v2/publishers/${{ secrets.CHROME_PUBLISHER_ID }}/items/${{ secrets.CHROME_EXTENSION_ID }}" \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+            -H "x-goog-api-version: 2" \
+            -T extension.zip)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          echo "Upload response ($HTTP_CODE): $BODY"
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            exit 1
+          fi
+
+      - name: Publish to Chrome Web Store (V2 API)
+        run: |
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST "https://chromewebstore.googleapis.com/v2/publishers/${{ secrets.CHROME_PUBLISHER_ID }}/items/${{ secrets.CHROME_EXTENSION_ID }}:publish" \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+            -H "x-goog-api-version: 2")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          echo "Publish response ($HTTP_CODE): $BODY"
+          if [ "$HTTP_CODE" -ge 400 ]; then
+            exit 1
+          fi
