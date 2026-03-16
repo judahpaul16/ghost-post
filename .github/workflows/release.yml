@@ -1,175 +1,184 @@
 name: Release
 
 on:
-  push:
-    branches: [main]
+    push:
+        branches: [main]
+    workflow_dispatch:
 
 jobs:
-  release:
-    if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]')"
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    release:
+        if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]')"
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
 
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "npm"
 
-      - run: npm ci
+            - run: npm ci
 
-      - run: npm run build
+            - run: npm run build
 
-      - name: Determine version
-        id: version
-        run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          VERSION=${LATEST_TAG#v}
-          MAJOR=$(echo $VERSION | cut -d. -f1)
-          MINOR=$(echo $VERSION | cut -d. -f2)
-          PATCH=$(echo $VERSION | cut -d. -f3)
+            - name: Determine version
+              id: version
+              run: |
+                  LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+                  VERSION=${LATEST_TAG#v}
+                  MAJOR=$(echo $VERSION | cut -d. -f1)
+                  MINOR=$(echo $VERSION | cut -d. -f2)
+                  PATCH=$(echo $VERSION | cut -d. -f3)
 
-          if [ "$LATEST_TAG" = "v0.0.0" ]; then
-            COMMIT_MESSAGES=$(git log --pretty=format:"%s" HEAD)
-          else
-            COMMIT_MESSAGES=$(git log --pretty=format:"%s" ${LATEST_TAG}..HEAD)
-          fi
+                  if [ "$LATEST_TAG" = "v0.0.0" ]; then
+                    COMMIT_MESSAGES=$(git log --pretty=format:"%s" HEAD)
+                  else
+                    COMMIT_MESSAGES=$(git log --pretty=format:"%s" ${LATEST_TAG}..HEAD)
+                  fi
 
-          if echo "$COMMIT_MESSAGES" | grep -qi "\[major update\]"; then
-            MAJOR=$((MAJOR + 1))
-            MINOR=0
-            PATCH=0
-          elif echo "$COMMIT_MESSAGES" | grep -qi "\[minor update\]"; then
-            MINOR=$((MINOR + 1))
-            PATCH=0
-          else
-            PATCH=$((PATCH + 1))
-          fi
+                  if echo "$COMMIT_MESSAGES" | grep -qi "\[major update\]"; then
+                    MAJOR=$((MAJOR + 1))
+                    MINOR=0
+                    PATCH=0
+                  elif echo "$COMMIT_MESSAGES" | grep -qi "\[minor update\]"; then
+                    MINOR=$((MINOR + 1))
+                    PATCH=0
+                  else
+                    PATCH=$((PATCH + 1))
+                  fi
 
-          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
-          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
-          echo "latest_tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
+                  NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+                  echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+                  echo "latest_tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Generate changelog
-        id: changelog
-        run: |
-          LATEST_TAG="${{ steps.version.outputs.latest_tag }}"
-          NEW_VERSION="${{ steps.version.outputs.version }}"
+            - name: Generate changelog
+              id: changelog
+              run: |
+                  LATEST_TAG="${{ steps.version.outputs.latest_tag }}"
+                  NEW_VERSION="${{ steps.version.outputs.version }}"
 
-          {
-            echo "## What's Changed"
-            echo ""
-            if [ "$LATEST_TAG" = "v0.0.0" ]; then
-              git log --pretty=format:"- %h %s" HEAD | grep -viE "^- \w+ (Merge|CI:|Bump version|\[skip ci\]|\[ci skip\])" || true
-            else
-              git log --pretty=format:"- %h %s" ${LATEST_TAG}..HEAD | grep -viE "^- \w+ (Merge|CI:|Bump version|\[skip ci\]|\[ci skip\])" || true
-            fi
-            echo ""
-            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${LATEST_TAG}...${NEW_VERSION}"
-          } > changelog.md
+                  {
+                    echo "## What's Changed"
+                    echo ""
+                    if [ "$LATEST_TAG" = "v0.0.0" ]; then
+                      git log --pretty=format:"- %h %s" HEAD | grep -viE "^- \w+ (Merge|CI:|Bump version|\[skip ci\]|\[ci skip\])" || true
+                    else
+                      git log --pretty=format:"- %h %s" ${LATEST_TAG}..HEAD | grep -viE "^- \w+ (Merge|CI:|Bump version|\[skip ci\]|\[ci skip\])" || true
+                    fi
+                    echo ""
+                    echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${LATEST_TAG}...${NEW_VERSION}"
+                  } > changelog.md
 
-          echo "Generated changelog:"
-          cat changelog.md
+                  echo "Generated changelog:"
+                  cat changelog.md
 
-      - name: Package extension
-        run: |
-          cd dist
-          zip -r ../ghost-post-${{ steps.version.outputs.version }}.zip .
+            - name: Package extension
+              run: |
+                  cd dist
+                  zip -r ../ghost-post-${{ steps.version.outputs.version }}.zip .
 
-      - name: Create release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git tag ${{ steps.version.outputs.version }}
-          git push origin ${{ steps.version.outputs.version }}
-          gh release create ${{ steps.version.outputs.version }} \
-            ghost-post-${{ steps.version.outputs.version }}.zip \
-            --title "${{ steps.version.outputs.version }}" \
-            --notes-file changelog.md
+            - name: Create release
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  git tag ${{ steps.version.outputs.version }}
+                  git push origin ${{ steps.version.outputs.version }}
+                  gh release create ${{ steps.version.outputs.version }} \
+                    ghost-post-${{ steps.version.outputs.version }}.zip \
+                    --title "${{ steps.version.outputs.version }}" \
+                    --notes-file changelog.md
 
-  # ──────────────────────────────────────────────────────────────
-  # Chrome Web Store Publishing (V2 API)
-  # ──────────────────────────────────────────────────────────────
-  # Prerequisites:
-  #   1. Register at https://chrome.google.com/webstore/developer ($5 one-time)
-  #   2. Create extension manually in Developer Dashboard
-  #   3. Complete store listing + privacy sections
-  #   4. Enable 2-step verification on your Google account
-  #   5. Google Cloud Console: enable Chrome Web Store API
-  #   6. Create OAuth 2.0 Client ID (Web application)
-  #      - Redirect URI: https://developers.google.com/oauthplayground
-  #   7. Generate refresh token via OAuth Playground:
-  #      - Scope: https://www.googleapis.com/auth/chromewebstore
-  #   8. Add GitHub Secrets:
-  #      - CHROME_EXTENSION_ID
-  #      - CHROME_PUBLISHER_ID (find at: chrome.google.com/webstore/devconsole)
-  #      - CHROME_WEB_STORE_CLIENT_ID
-  #      - CHROME_WEB_STORE_CLIENT_SECRET
-  #      - CHROME_WEB_STORE_REFRESH_TOKEN
+    # ──────────────────────────────────────────────────────────────
+    # Chrome Web Store Publishing (V2 API)
+    # ──────────────────────────────────────────────────────────────
+    # Prerequisites:
+    #   1. Register at https://chrome.google.com/webstore/developer ($5 one-time)
+    #   2. Create extension manually in Developer Dashboard
+    #      - https://chrome.google.com/webstore/devconsole
+    #   3. Complete store listing + privacy sections
+    #   4. Enable 2-step verification on your Google account
+    #   5. Google Cloud Console: enable Chrome Web Store API
+    #      - https://console.cloud.google.com/apis/library/chromewebstore.googleapis.com
+    #   6. Create OAuth 2.0 Client ID (Web application type)
+    #      - https://console.cloud.google.com/apis/credentials
+    #      - Authorized JavaScript origins: https://github.com
+    #      - Authorized redirect URIs: https://developers.google.com/oauthplayground
+    #   7. Generate refresh token via OAuth Playground:
+    #      - https://developers.google.com/oauthplayground
+    #      - Gear icon → "Use your own OAuth credentials" → enter Client ID + Secret
+    #      - Scope: https://www.googleapis.com/auth/chromewebstore
+    #      - Authorize → Step 2 → "Exchange authorization code for tokens"
+    #   8. Add GitHub Secrets:
+    #      - https://github.com/judahpaul16/ghost-post/settings/secrets/actions
+    #      - CHROME_EXTENSION_ID (from Developer Dashboard URL or detail page)
+    #      - CHROME_PUBLISHER_ID (from https://chrome.google.com/webstore/devconsole)
+    #      - CHROME_WEB_STORE_CLIENT_ID (from step 6)
+    #      - CHROME_WEB_STORE_CLIENT_SECRET (from step 6)
+    #      - CHROME_WEB_STORE_REFRESH_TOKEN (from step 7)
 
-  publish:
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    publish:
+        needs: release
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+                  cache: "npm"
 
-      - run: npm ci
-      - run: npm run build
+            - run: npm ci
+            - run: npm run build
 
-      - name: Package extension
-        run: |
-          cd dist
-          zip -r ../extension.zip .
+            - name: Package extension
+              run: |
+                  cd dist
+                  zip -r ../extension.zip .
 
-      - name: Get access token
-        id: auth
-        run: |
-          RESPONSE=$(curl -s -X POST https://oauth2.googleapis.com/token \
-            -d "client_id=${{ secrets.CHROME_WEB_STORE_CLIENT_ID }}" \
-            -d "client_secret=${{ secrets.CHROME_WEB_STORE_CLIENT_SECRET }}" \
-            -d "refresh_token=${{ secrets.CHROME_WEB_STORE_REFRESH_TOKEN }}" \
-            -d "grant_type=refresh_token")
-          TOKEN=$(echo "$RESPONSE" | jq -r '.access_token')
-          if [ "$TOKEN" = "null" ] || [ -z "$TOKEN" ]; then
-            echo "Failed to get access token: $RESPONSE"
-            exit 1
-          fi
-          echo "::add-mask::$TOKEN"
-          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+            - name: Get access token
+              id: auth
+              run: |
+                  RESPONSE=$(curl -s -X POST https://oauth2.googleapis.com/token \
+                    -d "client_id=${{ secrets.CHROME_WEB_STORE_CLIENT_ID }}" \
+                    -d "client_secret=${{ secrets.CHROME_WEB_STORE_CLIENT_SECRET }}" \
+                    -d "refresh_token=${{ secrets.CHROME_WEB_STORE_REFRESH_TOKEN }}" \
+                    -d "grant_type=refresh_token")
+                  TOKEN=$(echo "$RESPONSE" | jq -r '.access_token')
+                  if [ "$TOKEN" = "null" ] || [ -z "$TOKEN" ]; then
+                    echo "Failed to get access token: $RESPONSE"
+                    exit 1
+                  fi
+                  echo "::add-mask::$TOKEN"
+                  echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
-      - name: Upload to Chrome Web Store (V2 API)
-        run: |
-          RESPONSE=$(curl -s -w "\n%{http_code}" \
-            -X PUT "https://chromewebstore.googleapis.com/v2/publishers/${{ secrets.CHROME_PUBLISHER_ID }}/items/${{ secrets.CHROME_EXTENSION_ID }}" \
-            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
-            -H "x-goog-api-version: 2" \
-            -T extension.zip)
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | sed '$d')
-          echo "Upload response ($HTTP_CODE): $BODY"
-          if [ "$HTTP_CODE" -ge 400 ]; then
-            exit 1
-          fi
+            - name: Upload to Chrome Web Store (V2 API)
+              run: |
+                  RESPONSE=$(curl -s -w "\n%{http_code}" \
+                    -X PUT "https://chromewebstore.googleapis.com/v2/publishers/${{ secrets.CHROME_PUBLISHER_ID }}/items/${{ secrets.CHROME_EXTENSION_ID }}" \
+                    -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+                    -H "x-goog-api-version: 2" \
+                    -T extension.zip)
+                  HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+                  BODY=$(echo "$RESPONSE" | sed '$d')
+                  echo "Upload response ($HTTP_CODE): $BODY"
+                  if [ "$HTTP_CODE" -ge 400 ]; then
+                    exit 1
+                  fi
 
-      - name: Publish to Chrome Web Store (V2 API)
-        run: |
-          RESPONSE=$(curl -s -w "\n%{http_code}" \
-            -X POST "https://chromewebstore.googleapis.com/v2/publishers/${{ secrets.CHROME_PUBLISHER_ID }}/items/${{ secrets.CHROME_EXTENSION_ID }}:publish" \
-            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
-            -H "x-goog-api-version: 2")
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | sed '$d')
-          echo "Publish response ($HTTP_CODE): $BODY"
-          if [ "$HTTP_CODE" -ge 400 ]; then
-            exit 1
-          fi
+            - name: Publish to Chrome Web Store (V2 API)
+              run: |
+                  RESPONSE=$(curl -s -w "\n%{http_code}" \
+                    -X POST "https://chromewebstore.googleapis.com/v2/publishers/${{ secrets.CHROME_PUBLISHER_ID }}/items/${{ secrets.CHROME_EXTENSION_ID }}:publish" \
+                    -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+                    -H "x-goog-api-version: 2")
+                  HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+                  BODY=$(echo "$RESPONSE" | sed '$d')
+                  echo "Publish response ($HTTP_CODE): $BODY"
+                  if [ "$HTTP_CODE" -ge 400 ]; then
+                    exit 1
+                  fi
