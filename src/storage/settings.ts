@@ -2,17 +2,19 @@ import type { CustomPageConfig } from "@/types";
 
 export interface Settings {
   pdlApiKey: string;
-  airtableApiKey: string;
-  airtableBaseId: string;
   jsearchApiKey: string;
+  llmApiKey: string;
+  llmBaseUrl: string;
+  llmModel: string;
   customPages: CustomPageConfig[];
 }
 
 const DEFAULTS: Settings = {
   pdlApiKey: "",
-  airtableApiKey: "",
-  airtableBaseId: "",
   jsearchApiKey: "",
+  llmApiKey: "",
+  llmBaseUrl: "",
+  llmModel: "gpt-4o-mini",
   customPages: [],
 };
 

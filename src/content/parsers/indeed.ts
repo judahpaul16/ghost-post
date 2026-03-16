@@ -60,10 +60,17 @@ export const indeedParser: SiteParser = {
 
   parseJobCards(doc: Document): JobCardData[] {
     const cards: JobCardData[] = [];
-    const cardEls = doc.querySelectorAll(
-      ".job_seen_beacon, .jobsearch-ResultsList .result, .tapItem"
+    const allEls = Array.from(
+      doc.querySelectorAll(
+        ".job_seen_beacon, .jobsearch-ResultsList .result, .tapItem"
+      )
     );
 
+    const cardEls = allEls.filter(
+      (el) => !allEls.some((other) => other !== el && other.contains(el))
+    );
+
+    const seenUrls = new Set<string>();
     for (const el of cardEls) {
       const companyEl = el.querySelector(
         "[data-testid='company-name'], .companyName, .company"
@@ -74,12 +81,16 @@ export const indeedParser: SiteParser = {
       );
 
       const company = companyEl?.textContent?.trim();
-      const url = linkEl?.getAttribute("href");
-      if (!company || !url) continue;
+      const rawUrl = linkEl?.getAttribute("href");
+      if (!company || !rawUrl) continue;
+
+      const url = rawUrl.startsWith("http") ? rawUrl : `https://www.indeed.com${rawUrl}`;
+      if (seenUrls.has(url)) continue;
+      seenUrls.add(url);
 
       cards.push({
         company,
-        url: url.startsWith("http") ? url : `https://www.indeed.com${url}`,
+        url,
         datePosted: dateEl?.textContent?.trim(),
         element: el,
       });

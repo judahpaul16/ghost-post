@@ -77,6 +77,25 @@ function extractDateFromDom(doc: Document): string | undefined {
   return undefined;
 }
 
+const APPLY_PATTERNS = /\bapply\b/i;
+const JOB_FIELD_PATTERNS = /\b(salary|compensation|qualifications|requirements|responsibilities|experience|benefits|department|employment type|job type|location|remote|hybrid|on-site)\b/i;
+
+function hasJobPostingSignals(doc: Document): boolean {
+  const links = doc.querySelectorAll("a, button");
+  for (const el of links) {
+    const text = el.textContent?.trim() ?? "";
+    if (text.length < 50 && APPLY_PATTERNS.test(text)) return true;
+  }
+
+  if (extractDateFromDom(doc)) return true;
+
+  const bodyText = doc.body?.innerText ?? "";
+  const fieldMatches = bodyText.match(new RegExp(JOB_FIELD_PATTERNS.source, "gi"));
+  if (fieldMatches && fieldMatches.length >= 3) return true;
+
+  return false;
+}
+
 export const genericParser: SiteParser = {
   canParse: () => true,
 
@@ -104,6 +123,8 @@ export const genericParser: SiteParser = {
         };
       }
     }
+
+    if (!hasJobPostingSignals(doc)) return null;
 
     const title = extractTitleFromDom(doc);
     const company = extractCompanyFromDom(doc, url);

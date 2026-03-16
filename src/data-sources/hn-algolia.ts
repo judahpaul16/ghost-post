@@ -45,6 +45,7 @@ function isCompanyPost(hit: HnHit, company: string, threadIds: string[]): boolea
 export const hnAlgoliaSource: DataSource = {
   id: "hn-algolia",
   requiresApiKey: false,
+  scope: "company",
 
   async check(context: DataSourceContext): Promise<Signal> {
     const base: Omit<Signal, "level" | "points" | "description" | "available"> = {

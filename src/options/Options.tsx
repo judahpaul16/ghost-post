@@ -41,12 +41,26 @@ function ApiKeyField({
   );
 }
 
+function ExternalLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-purple-400/80 hover:text-purple-300 transition-colors underline underline-offset-2"
+    >
+      {children}
+    </a>
+  );
+}
+
 export default function Options() {
   const [settings, setSettings] = useState<Settings>({
     pdlApiKey: "",
-    airtableApiKey: "",
-    airtableBaseId: "",
     jsearchApiKey: "",
+    llmApiKey: "",
+    llmBaseUrl: "",
+    llmModel: "gpt-4o-mini",
     customPages: [],
   });
   const [saved, setSaved] = useState(false);
@@ -61,7 +75,38 @@ export default function Options() {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const updateField = (field: "pdlApiKey" | "airtableApiKey" | "airtableBaseId" | "jsearchApiKey") => (value: string) => {
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!settings.llmBaseUrl || !settings.llmApiKey) {
+      setAvailableModels([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    setModelsLoading(true);
+
+    fetch(`${settings.llmBaseUrl}/models`, {
+      headers: { Authorization: `Bearer ${settings.llmApiKey}` },
+      signal: controller.signal,
+    })
+      .then((r) => r.ok ? r.json() : Promise.reject())
+      .then((data) => {
+        const NON_CHAT = /^(tts-|whisper-|dall-e|davinci|babbage|text-embedding|text-moderation|omni-moderation|sora-|chatgpt-image|gpt-audio|gpt-image|gpt-realtime)|-(instruct|realtime|audio-preview|transcribe|tts|search-preview|search-api|codex|deep-research)/;
+        const ids: string[] = (data.data ?? [])
+          .map((m: { id: string }) => m.id)
+          .filter((id: string) => !NON_CHAT.test(id))
+          .sort((a: string, b: string) => a.localeCompare(b));
+        setAvailableModels(ids);
+      })
+      .catch(() => setAvailableModels([]))
+      .finally(() => setModelsLoading(false));
+
+    return () => controller.abort();
+  }, [settings.llmBaseUrl, settings.llmApiKey]);
+
+  const updateField = (field: keyof Omit<Settings, "customPages">) => (value: string) => {
     setSettings((prev) => ({ ...prev, [field]: value }));
     setSaved(false);
   };
@@ -99,7 +144,10 @@ export default function Options() {
               <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
               <h2 className="text-[12px] font-semibold text-zinc-300">People Data Labs</h2>
             </div>
-            <p className="text-[10px] text-zinc-600 mb-3">Company headcount and funding data. Free: 100/month.</p>
+            <p className="text-[10px] text-zinc-600 mb-3">
+              Company size and employee count data. Free: 100/month.
+              {" "}<ExternalLink href="https://dashboard.peopledatalabs.com/api-keys">Get API key</ExternalLink>
+            </p>
             <ApiKeyField
               label="API Key"
               value={settings.pdlApiKey}
@@ -110,32 +158,13 @@ export default function Options() {
 
           <section className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800/60">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-              <h2 className="text-[12px] font-semibold text-zinc-300">Airtable (layoffs.fyi)</h2>
-            </div>
-            <p className="text-[10px] text-zinc-600 mb-3">Check for recent company layoffs. Free: 1,000/month.</p>
-            <div className="space-y-3">
-              <ApiKeyField
-                label="API Key"
-                value={settings.airtableApiKey}
-                onChange={updateField("airtableApiKey")}
-                placeholder="pat..."
-              />
-              <ApiKeyField
-                label="Base ID"
-                value={settings.airtableBaseId}
-                onChange={updateField("airtableBaseId")}
-                placeholder="app..."
-              />
-            </div>
-          </section>
-
-          <section className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800/60">
-            <div className="flex items-center gap-2 mb-3">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               <h2 className="text-[12px] font-semibold text-zinc-300">JSearch (RapidAPI)</h2>
             </div>
-            <p className="text-[10px] text-zinc-600 mb-3">Cross-reference listings across job platforms. Free: 500/month.</p>
+            <p className="text-[10px] text-zinc-600 mb-3">
+              Cross-reference listings across job platforms. Free: 500/month.
+              {" "}<ExternalLink href="https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch">Subscribe on RapidAPI</ExternalLink>
+            </p>
             <ApiKeyField
               label="API Key"
               value={settings.jsearchApiKey}
@@ -143,10 +172,65 @@ export default function Options() {
               placeholder="rapid_api_..."
             />
           </section>
+
+          <section className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800/60">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+              <h2 className="text-[12px] font-semibold text-zinc-300">LLM (Headcount Trend)</h2>
+            </div>
+            <p className="text-[10px] text-zinc-600 mb-3">
+              Improves employee count extraction from SEC 10-K filings. Works without a key via regex fallback.
+              {" "}<ExternalLink href="https://docs.litellm.ai/docs/providers">Supported providers</ExternalLink>
+            </p>
+            <div className="space-y-2">
+              <ApiKeyField
+                label="API Key"
+                value={settings.llmApiKey}
+                onChange={updateField("llmApiKey")}
+                placeholder="sk-..."
+              />
+              <div className="space-y-1.5">
+                <label className="block text-[12px] font-medium text-zinc-400">Base URL</label>
+                <input
+                  type="text"
+                  value={settings.llmBaseUrl}
+                  onChange={(e) => updateField("llmBaseUrl")(e.target.value)}
+                  placeholder="https://api.openai.com/v1"
+                  className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-[12px] text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all font-mono"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-[12px] font-medium text-zinc-400">
+                  Model{modelsLoading ? " (loading...)" : ""}
+                </label>
+                {availableModels.length > 0 ? (
+                  <select
+                    value={availableModels.includes(settings.llmModel) ? settings.llmModel : ""}
+                    onChange={(e) => updateField("llmModel")(e.target.value)}
+                    className="w-full px-3 pr-8 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-[12px] text-zinc-200 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all font-mono appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%2371717a%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.23%207.21a.75.75%200%20011.06.02L10%2011.168l3.71-3.938a.75.75%200%20111.08%201.04l-4.25%204.5a.75.75%200%2001-1.08%200l-4.25-4.5a.75.75%200%2001.02-1.06z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[right_0.5rem_center] bg-no-repeat"
+                  >
+                    {!availableModels.includes(settings.llmModel) && (
+                      <option value="" disabled>Select a model</option>
+                    )}
+                    {availableModels.map((m) => <option key={m} value={m}>{m}</option>)}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={settings.llmModel}
+                    onChange={(e) => updateField("llmModel")(e.target.value)}
+                    placeholder="gpt-4o-mini"
+                    className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-[12px] text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all font-mono"
+                  />
+                )}
+              </div>
+            </div>
+          </section>
+
         </div>
 
         <p className="text-[10px] text-zinc-600 mb-4 px-1">
-          Wayback Machine, HN Algolia, and ATS verification require no keys. Keys are stored locally via Chrome Sync.
+          Wayback Machine, HN Algolia, ATS verification, layoffs.fyi, and The Muse require no keys. Keys are stored locally via Chrome Sync.
         </p>
 
         <CustomPageEditor

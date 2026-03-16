@@ -17,6 +17,7 @@ interface JSearchResponse {
 export const jsearchSource: DataSource = {
   id: "jsearch",
   requiresApiKey: true,
+  scope: "job",
 
   async check(context: DataSourceContext): Promise<Signal> {
     const base: Omit<Signal, "level" | "points" | "description" | "available"> = {

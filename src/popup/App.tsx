@@ -14,6 +14,7 @@ export default function App() {
   const [score, setScore] = useState<GhostScore | null>(null);
   const [loading, setLoading] = useState(true);
   const [refetching, setRefetching] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tabId, setTabId] = useState<number | null>(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -130,28 +131,48 @@ export default function App() {
               </svg>
               Settings
             </button>
-            <button
-              onClick={() => {
-                if (!tabId || refetching) return;
-                setRefetching(true);
-                chrome.runtime.sendMessage(
-                  { type: "REFETCH_SCORE", tabId },
-                  (response) => {
-                    if (response) {
-                      setScore(response as GhostScore);
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  if (clearing) return;
+                  setClearing(true);
+                  chrome.runtime.sendMessage({ type: "CLEAR_ALL_CACHE" }, () => {
+                    setClearing(false);
+                    setScore(null);
+                    setError("Cache cleared — reload the page to rescore");
+                  });
+                }}
+                disabled={clearing}
+                className="flex items-center gap-1.5 text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <svg viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3">
+                  <path d="M6.5 1.75a.25.25 0 01.25-.25h2.5a.25.25 0 01.25.25V3h-3V1.75zm4.5 0V3h2.25a.75.75 0 010 1.5H2.75a.75.75 0 010-1.5H5V1.75C5 .784 5.784 0 6.75 0h2.5C10.216 0 11 .784 11 1.75zM4.496 6.675a.75.75 0 10-1.492.15l.66 6.6A1.75 1.75 0 005.405 15h5.19a1.75 1.75 0 001.741-1.575l.66-6.6a.75.75 0 00-1.492-.15l-.66 6.6a.25.25 0 01-.249.225h-5.19a.25.25 0 01-.249-.225l-.66-6.6z" />
+                </svg>
+                {clearing ? "Clearing..." : "Clear Cache"}
+              </button>
+              <button
+                onClick={() => {
+                  if (!tabId || refetching) return;
+                  setRefetching(true);
+                  chrome.runtime.sendMessage(
+                    { type: "REFETCH_SCORE", tabId },
+                    (response) => {
+                      if (response) {
+                        setScore(response as GhostScore);
+                      }
+                      setRefetching(false);
                     }
-                    setRefetching(false);
-                  }
-                );
-              }}
-              disabled={refetching}
-              className="flex items-center gap-1.5 text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <svg viewBox="0 0 16 16" fill="currentColor" className={`w-3 h-3 ${refetching ? "animate-spin" : ""}`}>
-                <path d="M13.65 2.35a8 8 0 10.59 10.54.75.75 0 00-1.3-.74A6.5 6.5 0 1113.06 4H10.75a.75.75 0 000 1.5h3.5a.75.75 0 00.75-.75v-3.5a.75.75 0 00-1.35-.45z" />
-              </svg>
-              {refetching ? "Refetching..." : "Refetch"}
-            </button>
+                  );
+                }}
+                disabled={refetching}
+                className="flex items-center gap-1.5 text-[11px] text-zinc-600 hover:text-zinc-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <svg viewBox="0 0 16 16" fill="currentColor" className={`w-3 h-3 ${refetching ? "animate-spin" : ""}`}>
+                  <path d="M13.65 2.35a8 8 0 10.59 10.54.75.75 0 00-1.3-.74A6.5 6.5 0 1113.06 4H10.75a.75.75 0 000 1.5h3.5a.75.75 0 00.75-.75v-3.5a.75.75 0 00-1.35-.45z" />
+                </svg>
+                {refetching ? "Refetching..." : "Refetch"}
+              </button>
+            </div>
           </div>
         </>
       )}

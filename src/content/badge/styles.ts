@@ -157,6 +157,33 @@ export const BADGE_CSS = `
     opacity: 0.7;
   }
 
+  .tooltip-signal.expandable {
+    cursor: pointer;
+    border-radius: 6px;
+    margin: 0 -4px;
+    padding: 4px;
+    transition: background 0.15s ease;
+  }
+
+  .tooltip-signal.expandable:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .signal-source {
+    color: #6b7280;
+    font-size: 10px;
+  }
+
+  .signal-desc.collapsed,
+  .signal-source.collapsed {
+    display: none;
+  }
+
+  .tooltip-signal.expandable.expanded .signal-desc.collapsed,
+  .tooltip-signal.expandable.expanded .signal-source.collapsed {
+    display: block;
+  }
+
   .signal-link-icon {
     width: 10px;
     height: 10px;
@@ -203,6 +230,11 @@ export const BADGE_CSS = `
     padding: 0 5px;
     border-radius: 4px;
     line-height: 16px;
+  }
+
+  .signal-points.negative {
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.12);
   }
 
   .signal-desc {

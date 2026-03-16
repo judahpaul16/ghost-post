@@ -9,6 +9,7 @@ if ((window as unknown as Record<string, boolean>).__ghostPostLoaded) {
 (window as unknown as Record<string, boolean>).__ghostPostLoaded = true;
 
 const injector = new BadgeInjector();
+const cardElements = new Map<string, Element>();
 
 let parser: SiteParser;
 let lastPostingUrl: string | null = null;
@@ -55,9 +56,14 @@ function scoreAndBadgePosting() {
   };
   sendMessage(message, (response) => {
     if ((response as Record<string, unknown>)?.type === "SCORE_JOB_RESULT") {
+      const score = (response as Record<string, unknown>).payload as GhostScore;
       const el = parser.getPostingElement(document);
       if (el) {
-        injector.inject(el, (response as Record<string, unknown>).payload as GhostScore);
+        injector.inject(el, score);
+      }
+      const cardEl = cardElements.get(posting.url);
+      if (cardEl) {
+        injector.inject(cardEl, score);
       }
     }
   });
@@ -66,6 +72,7 @@ function scoreAndBadgePosting() {
 function scoreCards(cards: Array<import("@/types").JobCardData>) {
   if (!contextValid()) return;
   for (const card of cards) {
+    cardElements.set(card.url, card.element);
     injector.injectLoading(card.element);
   }
 
@@ -82,11 +89,10 @@ function scoreCards(cards: Array<import("@/types").JobCardData>) {
 
   sendMessage(message, (response) => {
     if ((response as Record<string, unknown>)?.type === "SCORE_BATCH_RESULT") {
-      const urlToCard = new Map(cards.map((c) => [c.url, c]));
       for (const result of (response as Record<string, unknown>).payload as Array<{ url: string; score: GhostScore }>) {
-        const card = urlToCard.get(result.url);
-        if (card) {
-          injector.inject(card.element, result.score);
+        const el = cardElements.get(result.url);
+        if (el) {
+          injector.inject(el, result.score);
         }
       }
     }
@@ -123,9 +129,14 @@ function init(customPages: CustomPageConfig[]) {
     };
     sendMessage(message, (response) => {
       if ((response as Record<string, unknown>)?.type === "SCORE_JOB_RESULT") {
+        const score = (response as Record<string, unknown>).payload as GhostScore;
         const el = parser.getPostingElement(document);
         if (el) {
-          injector.inject(el, (response as Record<string, unknown>).payload as GhostScore);
+          injector.inject(el, score);
+        }
+        const cardEl = cardElements.get(posting.url);
+        if (cardEl) {
+          injector.inject(cardEl, score);
         }
       }
     });

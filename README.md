@@ -10,7 +10,9 @@ Chrome extension that scores job postings for likelihood of being ghost jobs.
 - Inline badges on job list pages (LinkedIn, Indeed, Greenhouse, Lever, Workday)
 - Clickable signals with links to source data
 - Custom page support — define CSS selectors for any unsupported job board
-- Checks posting age, structured data, ATS presence, Wayback Machine history, HN hiring threads, company headcount, recent layoffs, cross-platform job listings, and The Muse partner status
+- Checks posting age, structured data, ATS presence, Wayback Machine history, HN hiring threads, company size, headcount trends (SEC 10-K filings), recent layoffs, cross-platform job listings, and The Muse partner status
+- Headcount trend chart page — click the signal to see up to 10 years of employee count data with YoY change overlay
+- Brand→parent company resolution — subsidiaries (e.g., YouTube, GitHub) automatically resolve to their SEC-filing parent (Alphabet, Microsoft) via Wikidata and SEC EFTS
 - All processing in-browser — no backend server
 - Bring your own API keys for premium data sources
 
@@ -43,14 +45,15 @@ Open the extension options page to add API keys:
 | HN Algolia | No | Unlimited | Company presence in "Who is Hiring?" threads |
 | ATS Verification | No | Unlimited | Whether the company has a careers page on Greenhouse, Lever, or Ashby |
 | The Muse | No | Unlimited | Whether the company actively promotes listings on The Muse |
-| People Data Labs | Yes | 100/mo | Company headcount and funding |
-| Airtable (layoffs.fyi) | Yes | 1,000/mo | Recent company layoffs |
+| layoffs.fyi | No | Unlimited | Recent company layoffs |
+| People Data Labs | Yes | 100/mo | Company size and employee count |
 | JSearch (RapidAPI) | Yes | 500/mo | Cross-reference listings across job platforms via Google for Jobs |
+| SEC Headcount | No | Unlimited | YoY employee count trend from SEC 10-K filings (LLM optional) |
 
 Get your keys:
-- **PDL**: [peopledatalabs.com](https://www.peopledatalabs.com/) — sign up for a free account
-- **Airtable**: [airtable.com/account](https://airtable.com/account) — generate a personal access token
+- **PDL**: [dashboard.peopledatalabs.com](https://dashboard.peopledatalabs.com/api-keys) — sign up for a free account
 - **JSearch**: [rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch) — subscribe to the free plan
+- **LLM** (optional): Any OpenAI-compatible endpoint ([LiteLLM](https://docs.litellm.ai/), OpenAI, etc.) — improves SEC headcount extraction accuracy. Falls back to regex without a key. Configure base URL, model, and API key in settings
 
 ### Custom Pages
 
@@ -71,8 +74,11 @@ For job boards not supported by default, add custom page configurations in the o
 | Posted > 30 days ago | +15 | Page data |
 | URL first seen > 60 days ago | +15 | Wayback Machine |
 | No careers page on any ATS | +20 | ATS verification |
-| Company headcount declining | +20 | PDL |
+| Very small company (< 10 employees) | +10 | PDL |
 | Posted > 60 days ago | +25 | Page data |
+| Headcount growing 10%+ YoY | -5 | SEC EDGAR |
+| Headcount declined 5–15% YoY | +10 | SEC EDGAR |
+| Headcount dropped 15%+ YoY | +15 | SEC EDGAR |
 | Recent layoffs | +25 | layoffs.fyi |
 
 Score is clamped 0–100. **Ranges**: 0–25 (green, likely real) · 26–50 (yellow, caution) · 51–100 (red, likely ghost)

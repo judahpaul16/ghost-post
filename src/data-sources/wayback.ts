@@ -6,6 +6,7 @@ const SIXTY_DAYS_MS = 60 * 24 * 60 * 60 * 1000;
 export const waybackSource: DataSource = {
   id: "wayback",
   requiresApiKey: false,
+  scope: "job",
 
   async check(context: DataSourceContext): Promise<Signal> {
     const base: Omit<Signal, "level" | "points" | "description" | "available"> = {

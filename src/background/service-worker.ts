@@ -4,52 +4,58 @@ import type {
   JobPosting,
   Signal,
 } from "@/types";
-import type { DataSourceContext } from "@/data-sources/types";
+import type { DataSource, DataSourceContext } from "@/data-sources/types";
 import { waybackSource } from "@/data-sources/wayback";
 import { pdlSource } from "@/data-sources/pdl";
 import { hnAlgoliaSource } from "@/data-sources/hn-algolia";
-import { airtableLayoffsSource } from "@/data-sources/airtable-layoffs";
+import { layoffsSource } from "@/data-sources/layoffs";
 import { atsVerifySource } from "@/data-sources/ats-verify";
 import { jsearchSource } from "@/data-sources/jsearch";
 import { theMuseSource } from "@/data-sources/the-muse";
+import { secHeadcountSource } from "@/data-sources/sec-headcount";
 import { computeScore, computeBatchScore } from "@/scoring/engine";
 
-const dataSources = [waybackSource, pdlSource, hnAlgoliaSource, airtableLayoffsSource, atsVerifySource, jsearchSource, theMuseSource];
-const cachedSources = dataSources.filter((s) => s.requiresApiKey);
-const freshSources = dataSources.filter((s) => !s.requiresApiKey);
+const dataSources = [waybackSource, pdlSource, hnAlgoliaSource, layoffsSource, atsVerifySource, jsearchSource, theMuseSource, secHeadcountSource];
+const companySources = dataSources.filter((s) => s.scope === "company");
+const jobSources = dataSources.filter((s) => s.scope === "job");
 
 const tabScores = new Map<number, GhostScore>();
 const tabPostings = new Map<number, JobPosting>();
 const tabNoPosting = new Set<number>();
 const tabInFlight = new Map<number, Promise<GhostScore>>();
-const inFlightSignals = new Map<string, Promise<Signal[]>>();
+const inFlightCompany = new Map<string, Promise<Signal[]>>();
+const inFlightJob = new Map<string, Promise<Signal[]>>();
 const tabProgress = new Map<number, string[]>();
 
 const SOURCE_LABELS: Record<string, string> = {
   wayback: "Checking Web Archive",
   pdl: "Checking Company Data",
   "hn-algolia": "Checking Hacker News",
-  "airtable-layoffs": "Checking Layoff History",
+  layoffs: "Checking Layoff History",
   "ats-verify": "Verifying Careers Page",
   jsearch: "Checking Job Listings",
   "the-muse": "Checking The Muse",
+  "sec-headcount": "Checking Headcount Trend",
 };
 
 function companyKey(company: string): string {
   return company.toLowerCase().replace(/\s+/g, "_");
 }
 
-function cacheKey(company: string): string {
-  return `signals_${companyKey(company)}`;
+function jobKey(url: string): string {
+  return url.replace(/[?#].*$/, "").toLowerCase();
 }
 
-function isUsableSignal(signal: Signal): boolean {
-  return signal.available;
+function companyCacheKey(company: string): string {
+  return `company_${companyKey(company)}`;
 }
 
-async function getCachedSignals(company: string): Promise<Signal[] | null> {
+function jobCacheKey(url: string): string {
+  return `job_${jobKey(url)}`;
+}
+
+async function getCached(key: string): Promise<Signal[] | null> {
   try {
-    const key = cacheKey(company);
     const result = await chrome.storage.session.get(key);
     return (result[key] as Signal[]) ?? null;
   } catch {
@@ -57,70 +63,96 @@ async function getCachedSignals(company: string): Promise<Signal[] | null> {
   }
 }
 
-async function setCachedSignals(company: string, signals: Signal[]): Promise<void> {
+async function setCache(key: string, signals: Signal[]): Promise<void> {
   try {
-    await chrome.storage.session.set({ [cacheKey(company)]: signals });
+    await chrome.storage.session.set({ [key]: signals });
   } catch {}
 }
 
-async function clearCachedSignals(company: string): Promise<void> {
+async function clearCache(key: string): Promise<void> {
   try {
-    await chrome.storage.session.remove(cacheKey(company));
+    await chrome.storage.session.remove(key);
   } catch {}
 }
 
-async function fetchSignals(sources: typeof dataSources, context: DataSourceContext, tabId?: number): Promise<Signal[]> {
+function reportCachedProgress(signals: Signal[], tabId: number) {
+  const progress = tabProgress.get(tabId) ?? [];
+  for (const s of signals) {
+    const label = SOURCE_LABELS[s.id] ?? s.id;
+    if (!progress.includes(label)) progress.push(label);
+  }
+  tabProgress.set(tabId, progress);
+}
+
+async function fetchSignals(sources: DataSource[], context: DataSourceContext, tabId?: number): Promise<Signal[]> {
   const results = await Promise.allSettled(
     sources.map((source) =>
-      source.check(context).then((signal) => {
+      source.check(context).then((result) => {
         if (tabId !== undefined) {
           const progress = tabProgress.get(tabId) ?? [];
           progress.push(SOURCE_LABELS[source.id] ?? source.id);
           tabProgress.set(tabId, progress);
         }
-        return signal;
+        return result;
       })
     )
   );
   return results
-    .filter((r): r is PromiseFulfilledResult<Signal> => r.status === "fulfilled")
-    .map((r) => r.value);
+    .filter((r): r is PromiseFulfilledResult<Signal | Signal[]> => r.status === "fulfilled")
+    .flatMap((r) => r.value);
 }
 
-const FREE_SIGNAL_IDS = new Set(["wayback-age", "hn-hiring", "ats-verify", "the-muse"]);
-
-async function resolveAllSignals(company: string, context: DataSourceContext, tabId?: number): Promise<Signal[]> {
-  const cached = await getCachedSignals(company);
-  const cachedPaid = cached?.filter((s) => isUsableSignal(s) && !FREE_SIGNAL_IDS.has(s.id)) ?? [];
-
-  if (tabId !== undefined && cachedPaid.length > 0) {
-    const progress = tabProgress.get(tabId) ?? [];
-    for (const s of cachedPaid) {
-      const label = SOURCE_LABELS[s.id] ?? s.id;
-      if (!progress.includes(label)) progress.push(label);
-    }
-    tabProgress.set(tabId, progress);
+async function resolveCompanySignals(company: string, context: DataSourceContext, tabId?: number): Promise<Signal[]> {
+  const key = companyCacheKey(company);
+  const cached = await getCached(key);
+  if (cached && cached.length > 0) {
+    if (tabId !== undefined) reportCachedProgress(cached, tabId);
+    return cached;
   }
 
-  const [freshSignals, paidSignals] = await Promise.all([
-    fetchSignals(freshSources, context, tabId),
-    cachedPaid.length > 0
-      ? Promise.resolve(cachedPaid)
-      : fetchSignals(cachedSources, context, tabId),
-  ]);
+  const signals = await fetchSignals(companySources, context, tabId);
+  const usable = signals.filter((s) => s.available);
+  if (usable.length > 0) await setCache(key, signals);
+  return signals;
+}
 
-  if (cachedPaid.length === 0) {
-    const toCache = paidSignals.filter(isUsableSignal);
-    if (toCache.length > 0) {
-      await setCachedSignals(company, toCache);
-    }
+async function resolveJobSignals(url: string, context: DataSourceContext, tabId?: number): Promise<Signal[]> {
+  const key = jobCacheKey(url);
+  const cached = await getCached(key);
+  if (cached && cached.length > 0) {
+    if (tabId !== undefined) reportCachedProgress(cached, tabId);
+    return cached;
   }
 
-  return [...freshSignals, ...paidSignals];
+  const signals = await fetchSignals(jobSources, context, tabId);
+  const usable = signals.filter((s) => s.available);
+  if (usable.length > 0) await setCache(key, signals);
+  return signals;
+}
+
+async function resolveAllSignals(company: string, url: string, context: DataSourceContext, tabId?: number): Promise<Signal[]> {
+  const ck = companyKey(company);
+  const jk = jobKey(url);
+
+  let companyPromise = inFlightCompany.get(ck);
+  if (!companyPromise) {
+    companyPromise = resolveCompanySignals(company, context, tabId);
+    inFlightCompany.set(ck, companyPromise);
+    companyPromise.finally(() => inFlightCompany.delete(ck));
+  }
+
+  let jobPromise = inFlightJob.get(jk);
+  if (!jobPromise) {
+    jobPromise = resolveJobSignals(url, context, tabId);
+    inFlightJob.set(jk, jobPromise);
+    jobPromise.finally(() => inFlightJob.delete(jk));
+  }
+
+  const [companySignals, jobSignals] = await Promise.all([companyPromise, jobPromise]);
+  return [...companySignals, ...jobSignals];
 }
 
 async function scoreJob(posting: JobPosting, tabId?: number): Promise<GhostScore> {
-  const key = companyKey(posting.company);
   const context: DataSourceContext = {
     company: posting.company,
     url: posting.url,
@@ -129,22 +161,16 @@ async function scoreJob(posting: JobPosting, tabId?: number): Promise<GhostScore
   };
 
   if (tabId !== undefined) tabProgress.set(tabId, []);
-
-  let existing = inFlightSignals.get(key);
-  if (!existing) {
-    existing = resolveAllSignals(posting.company, context, tabId);
-    inFlightSignals.set(key, existing);
-    existing.finally(() => inFlightSignals.delete(key));
-  }
-
-  const resolvedSignals = await existing;
+  const resolvedSignals = await resolveAllSignals(posting.company, posting.url, context, tabId);
   if (tabId !== undefined) tabProgress.delete(tabId);
   return computeScore(posting, resolvedSignals);
 }
 
 async function scoreJobFresh(posting: JobPosting): Promise<GhostScore> {
-  await clearCachedSignals(posting.company);
-  inFlightSignals.delete(companyKey(posting.company));
+  await clearCache(companyCacheKey(posting.company));
+  await clearCache(jobCacheKey(posting.url));
+  inFlightCompany.delete(companyKey(posting.company));
+  inFlightJob.delete(jobKey(posting.url));
 
   const context: DataSourceContext = {
     company: posting.company,
@@ -154,51 +180,34 @@ async function scoreJobFresh(posting: JobPosting): Promise<GhostScore> {
   };
 
   const resolvedSignals = await fetchSignals(dataSources, context);
-  const toCache = resolvedSignals.filter((s) => cachedSources.some((cs) => cs.id === s.id) && isUsableSignal(s));
-  if (toCache.length > 0) {
-    await setCachedSignals(posting.company, toCache);
-  }
+
+  const companySignals = resolvedSignals.filter((s) => companySources.some((cs) => cs.id === s.id));
+  const jobSignals = resolvedSignals.filter((s) => jobSources.some((js) => js.id === s.id));
+
+  if (companySignals.some((s) => s.available)) await setCache(companyCacheKey(posting.company), companySignals);
+  if (jobSignals.some((s) => s.available)) await setCache(jobCacheKey(posting.url), jobSignals);
+
   return computeScore(posting, resolvedSignals);
-}
-
-async function resolveCompanySignals(
-  company: string,
-  url: string,
-  datePosted?: string,
-): Promise<Signal[]> {
-  const context: DataSourceContext = {
-    company,
-    url,
-    datePosted,
-    hasStructuredData: false,
-  };
-
-  return resolveAllSignals(company, context);
 }
 
 async function scoreBatch(
   items: Array<{ company: string; datePosted?: string; url: string }>
 ): Promise<Array<{ url: string; score: GhostScore }>> {
-  const signalsByCompany = new Map<string, Promise<Signal[]>>();
+  const signalsByItem = new Map<string, Promise<Signal[]>>();
 
   for (const item of items) {
-    const key = companyKey(item.company);
-    if (!signalsByCompany.has(key)) {
-      const existing = inFlightSignals.get(key);
-      if (existing) {
-        signalsByCompany.set(key, existing);
-      } else {
-        const promise = resolveCompanySignals(item.company, item.url, item.datePosted);
-        signalsByCompany.set(key, promise);
-        inFlightSignals.set(key, promise);
-        promise.finally(() => inFlightSignals.delete(key));
-      }
-    }
+    const context: DataSourceContext = {
+      company: item.company,
+      url: item.url,
+      datePosted: item.datePosted,
+      hasStructuredData: false,
+    };
+    signalsByItem.set(item.url, resolveAllSignals(item.company, item.url, context));
   }
 
   return Promise.all(
     items.map(async (item) => {
-      const signals = await signalsByCompany.get(companyKey(item.company))!;
+      const signals = await signalsByItem.get(item.url)!;
       const score = computeBatchScore(item.company, item.datePosted, signals);
       return { url: item.url, score };
     })
@@ -292,6 +301,20 @@ chrome.runtime.onMessage.addListener(
         }
         sendResponse({ type: "pending", progress: tabProgress.get(message.tabId) ?? [] });
         return false;
+      }
+
+      case "CLEAR_ALL_CACHE": {
+        chrome.storage.session.clear().then(() => {
+          inFlightCompany.clear();
+          inFlightJob.clear();
+          tabScores.clear();
+          tabPostings.clear();
+          tabNoPosting.clear();
+          tabInFlight.clear();
+          tabProgress.clear();
+          sendResponse({ success: true });
+        });
+        return true;
       }
     }
   }

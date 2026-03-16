@@ -119,12 +119,28 @@ function deduplicateSignals(signals: Signal[]): Signal[] {
   return Array.from(seen.values());
 }
 
+const AGE_SIGNAL_IDS = new Set(["post-age", "wayback-age"]);
+
+function adjustAgeDoubleCount(signals: Signal[]): Signal[] {
+  const ageSignals = signals.filter((s) => AGE_SIGNAL_IDS.has(s.id) && s.points > 0);
+  if (ageSignals.length < 2) return signals;
+
+  const maxPoints = Math.max(...ageSignals.map((s) => s.points));
+  return signals.map((s) => {
+    if (AGE_SIGNAL_IDS.has(s.id) && s.points > 0 && s.points < maxPoints) {
+      return { ...s, points: 0 };
+    }
+    return s;
+  });
+}
+
 export function computeScore(
   posting: JobPosting,
   dataSourceSignals: Signal[]
 ): GhostScore {
   const dateSignals = computeDateSignals(posting);
-  const allSignals = deduplicateSignals([...dateSignals, ...dataSourceSignals]);
+  const deduped = deduplicateSignals([...dateSignals, ...dataSourceSignals]);
+  const allSignals = adjustAgeDoubleCount(deduped);
   const score = Math.max(
     0,
     Math.min(100, allSignals.reduce((sum, s) => sum + s.points, 0))

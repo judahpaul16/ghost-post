@@ -7,8 +7,11 @@ export interface DataSourceContext {
   hasStructuredData: boolean;
 }
 
+export type DataSourceScope = "company" | "job";
+
 export interface DataSource {
   readonly id: string;
   readonly requiresApiKey: boolean;
-  check(context: DataSourceContext): Promise<Signal>;
+  readonly scope: DataSourceScope;
+  check(context: DataSourceContext): Promise<Signal | Signal[]>;
 }

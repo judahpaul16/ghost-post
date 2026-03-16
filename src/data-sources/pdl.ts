@@ -12,9 +12,28 @@ interface PdlCompanyResponse {
   likelihood?: number;
 }
 
+const ATS_DOMAINS = new Set([
+  "greenhouse.io", "lever.co", "ashbyhq.com", "myworkdayjobs.com",
+  "linkedin.com", "indeed.com", "oraclecloud.com", "themuse.com",
+]);
+
+function extractRootDomain(jobUrl: string): string | null {
+  try {
+    const hostname = new URL(jobUrl).hostname;
+    const parts = hostname.split(".");
+    if (parts.length < 2) return null;
+    const root = parts.slice(-2).join(".");
+    if (ATS_DOMAINS.has(root)) return null;
+    return root;
+  } catch {
+    return null;
+  }
+}
+
 export const pdlSource: DataSource = {
   id: "pdl",
   requiresApiKey: true,
+  scope: "company",
 
   async check(context: DataSourceContext): Promise<Signal> {
     const base: Omit<Signal, "level" | "points" | "description" | "available"> = {
@@ -29,13 +48,17 @@ export const pdlSource: DataSource = {
         ...base,
         level: "neutral",
         points: 0,
-        description: "Add a People Data Labs API key in Settings to check company size",
+        description: "Add a People Data Labs API key in Settings to check company data",
         available: false,
       };
     }
 
     try {
+      const jobDomain = extractRootDomain(context.url);
       const url = new URL("https://api.peopledatalabs.com/v5/company/enrich");
+      if (jobDomain) {
+        url.searchParams.set("website", jobDomain);
+      }
       url.searchParams.set("name", context.company);
       url.searchParams.set("min_likelihood", "4");
 
@@ -43,10 +66,8 @@ export const pdlSource: DataSource = {
         headers: { "X-Api-Key": settings.pdlApiKey },
       });
 
-      const pdlUrl = `https://peopledatalabs.com/company/${encodeURIComponent(context.company.toLowerCase())}`;
-
       if (response.status === 404) {
-        return { ...base, level: "yellow", points: 5, description: "Company not found in business databases — may not be a real employer", available: true, url: pdlUrl };
+        return { ...base, level: "yellow", points: 5, description: "Company not found in business databases — may not be a real employer", available: true };
       }
 
       if (response.status === 429) {
@@ -71,7 +92,6 @@ export const pdlSource: DataSource = {
           points: 10,
           description: `Very small company (${employeeCount} employees) — fewer resources to actually hire`,
           available: true,
-          url: pdlUrl,
         };
       }
 
@@ -81,7 +101,6 @@ export const pdlSource: DataSource = {
         points: 0,
         description: `Established company with ${employeeCount.toLocaleString()} employees`,
         available: true,
-        url: pdlUrl,
       };
     } catch {
       return { ...base, level: "neutral", points: 0, description: "Could not look up company info", available: false };

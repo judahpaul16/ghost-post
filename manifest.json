@@ -28,7 +28,6 @@
     {
       "matches": [
         "https://www.linkedin.com/jobs/*",
-        "https://www.linkedin.com/feed/*",
         "https://*.greenhouse.io/*",
         "https://*.lever.co/*",
         "https://*.myworkdayjobs.com/*",
@@ -49,8 +48,11 @@
   "host_permissions": [
     "https://api.peopledatalabs.com/*",
     "https://web.archive.org/*",
-    "https://api.airtable.com/*",
+    "https://docs.google.com/*",
+    "https://*.googleusercontent.com/*",
     "https://hn.algolia.com/*",
-    "https://jsearch.p.rapidapi.com/*"
+    "https://jsearch.p.rapidapi.com/*",
+    "https://data.sec.gov/*",
+    "https://www.sec.gov/*"
   ]
 }

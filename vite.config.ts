@@ -15,6 +15,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         "hn-results": resolve(__dirname, "src/hn-results/index.html"),
+        "headcount": resolve(__dirname, "src/headcount/index.html"),
       },
     },
   },

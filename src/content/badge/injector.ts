@@ -98,7 +98,13 @@ export class BadgeInjector {
       tooltip.className = "ghost-tooltip";
       tooltip.innerHTML = createTooltipHTML(score);
 
-      tooltip.addEventListener("click", (e) => e.stopPropagation());
+      tooltip.addEventListener("click", (e) => {
+        const target = (e.target as Element).closest?.(".expandable");
+        if (target) {
+          target.classList.toggle("expanded");
+        }
+        e.stopPropagation();
+      });
 
       const shadow = badge.getRootNode() as ShadowRoot;
       shadow.appendChild(tooltip);

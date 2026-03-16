@@ -100,6 +100,10 @@ export interface GetTabScoreMessage {
   tabId: number;
 }
 
+export interface ClearAllCacheMessage {
+  type: "CLEAR_ALL_CACHE";
+}
+
 export type ExtensionMessage =
   | ScoreJobMessage
   | ScoreJobResultMessage
@@ -107,4 +111,5 @@ export type ExtensionMessage =
   | ScoreBatchResultMessage
   | RefetchScoreMessage
   | NoPostingMessage
-  | GetTabScoreMessage;
+  | GetTabScoreMessage
+  | ClearAllCacheMessage;
