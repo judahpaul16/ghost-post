@@ -1,6 +1,9 @@
-# Ghost Post 👻
+# Ghost Post <img src="public/icons/icon-128.png" width="32" height="32" alt="Ghost Post logo">
 
+[![Release](https://img.shields.io/github/v/release/judahpaul16/ghost-post?style=flat-square)](https://github.com/judahpaul16/ghost-post/tags)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+![Ghost Post](contrib/webstore/promo-marquee-1400x560.png)
 
 Chrome extension that scores job postings for likelihood of being ghost jobs.
 
