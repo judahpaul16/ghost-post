@@ -58,23 +58,43 @@ function extractCompanyFromDom(doc: Document, url: URL): string | null {
   return null;
 }
 
+function extractLabeledDate(doc: Document, patterns: string[]): string | undefined {
+  const labels = doc.querySelectorAll("dt, label, span, div, th, td, b, strong, p");
+  for (const label of labels) {
+    const raw = label.textContent?.trim() ?? "";
+    const text = raw.toLowerCase().replace(/[:\s]+$/, "");
+    if (!patterns.some((p) => text === p || text.startsWith(p))) continue;
+
+    const sibling =
+      label.nextElementSibling ??
+      label.parentElement?.nextElementSibling;
+    const dateText = sibling?.textContent?.trim();
+    if (dateText && dateText.length < 50) return dateText;
+
+    const inlineMatch = raw.match(
+      /[:]\s*(\d{1,2}\/\d{1,2}\/\d{2,4}[\s,]*\d{0,2}:?\d{0,2}:?\d{0,2}\s*[AP]?M?|.{8,40})/i
+    );
+    if (inlineMatch) return inlineMatch[1].trim();
+  }
+  return undefined;
+}
+
 function extractDateFromDom(doc: Document): string | undefined {
   const timeEl = doc.querySelector("time[datetime]");
   if (timeEl) return timeEl.getAttribute("datetime") ?? undefined;
 
-  const labels = doc.querySelectorAll("dt, label, span, div, th");
-  for (const label of labels) {
-    const text = label.textContent?.trim().toLowerCase() ?? "";
-    if (text === "date posted" || text === "posted" || text === "posted on" || text === "post date") {
-      const sibling =
-        label.nextElementSibling ??
-        (label.parentElement?.nextElementSibling);
-      const dateText = sibling?.textContent?.trim();
-      if (dateText && dateText.length < 50) return dateText;
-    }
-  }
+  return extractLabeledDate(doc, [
+    "date posted", "posted", "posted on", "post date",
+    "job posting",
+  ]);
+}
 
-  return undefined;
+function extractValidThroughFromDom(doc: Document): string | undefined {
+  return extractLabeledDate(doc, [
+    "closing date", "close date", "application deadline",
+    "deadline", "expires", "expiration date", "valid through",
+    "apply by", "apply before",
+  ]);
 }
 
 const APPLY_PATTERNS = /\bapply\b/i;
@@ -135,6 +155,7 @@ export const genericParser: SiteParser = {
       title,
       url: url.href,
       datePosted: extractDateFromDom(doc),
+      validThrough: extractValidThroughFromDom(doc),
       hasStructuredData: false,
     };
   },
