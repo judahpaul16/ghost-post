@@ -159,7 +159,7 @@ jobs:
             - name: Upload to Chrome Web Store (V2 API)
               run: |
                   RESPONSE=$(curl -s -w "\n%{http_code}" \
-                    -X PUT "https://chromewebstore.googleapis.com/v2/publishers/${{ secrets.CHROME_PUBLISHER_ID }}/items/${{ secrets.CHROME_EXTENSION_ID }}" \
+                    -X POST "https://chromewebstore.googleapis.com/upload/v2/publishers/${{ secrets.CHROME_PUBLISHER_ID }}/items/${{ secrets.CHROME_EXTENSION_ID }}:upload" \
                     -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
                     -H "x-goog-api-version: 2" \
                     -T extension.zip)
