@@ -1,7 +1,7 @@
 import { ParserFactory } from "./parsers/factory";
 import { BadgeInjector } from "./badge/injector";
 import type { SiteParser } from "./parsers/types";
-import type { ScoreJobMessage, ScoreBatchMessage, GhostScore, CustomPageConfig } from "@/types";
+import type { ScoreJobMessage, GhostScore, CustomPageConfig } from "@/types";
 
 if ((window as unknown as Record<string, boolean>).__ghostPostLoaded) {
   throw new Error("already loaded");
@@ -18,6 +18,22 @@ let observer: MutationObserver | null = null;
 
 function contextValid(): boolean {
   return !!chrome.runtime?.id;
+}
+
+function normalizeJobUrl(url: string): string {
+  try {
+    const parsed = new URL(url, window.location.origin);
+
+    const viewMatch = parsed.pathname.match(/\/jobs\/view\/(\d+)/);
+    if (viewMatch) return `/jobs/view/${viewMatch[1]}`;
+
+    const jobIdParam = parsed.searchParams.get("currentJobId");
+    if (jobIdParam) return `/jobs/view/${jobIdParam}`;
+
+    return parsed.pathname;
+  } catch {
+    return url;
+  }
 }
 
 function sendMessage(message: unknown, callback?: (response: unknown) => void) {
@@ -50,6 +66,11 @@ function scoreAndBadgePosting() {
     injector.injectLoading(postingEl);
   }
 
+  const cardEl = cardElements.get(normalizeJobUrl(posting.url));
+  if (cardEl) {
+    injector.injectLoading(cardEl);
+  }
+
   const message: ScoreJobMessage = {
     type: "SCORE_JOB",
     payload: posting,
@@ -61,42 +82,18 @@ function scoreAndBadgePosting() {
       if (el) {
         injector.inject(el, score);
       }
-      const cardEl = cardElements.get(posting.url);
-      if (cardEl) {
-        injector.inject(cardEl, score);
+      const card = cardElements.get(normalizeJobUrl(posting.url));
+      if (card) {
+        injector.inject(card, score);
       }
     }
   });
 }
 
-function scoreCards(cards: Array<import("@/types").JobCardData>) {
-  if (!contextValid()) return;
+function trackCards(cards: Array<import("@/types").JobCardData>) {
   for (const card of cards) {
-    cardElements.set(card.url, card.element);
-    injector.injectLoading(card.element);
+    cardElements.set(normalizeJobUrl(card.url), card.element);
   }
-
-  const batchPayload = cards.map((card) => ({
-    company: card.company,
-    datePosted: card.datePosted,
-    url: card.url,
-  }));
-
-  const message: ScoreBatchMessage = {
-    type: "SCORE_BATCH",
-    payload: batchPayload,
-  };
-
-  sendMessage(message, (response) => {
-    if ((response as Record<string, unknown>)?.type === "SCORE_BATCH_RESULT") {
-      for (const result of (response as Record<string, unknown>).payload as Array<{ url: string; score: GhostScore }>) {
-        const el = cardElements.get(result.url);
-        if (el) {
-          injector.inject(el, result.score);
-        }
-      }
-    }
-  });
 }
 
 function init(customPages: CustomPageConfig[]) {
@@ -116,11 +113,20 @@ function init(customPages: CustomPageConfig[]) {
     }, 8000);
   }
 
+  if (cards.length > 0) {
+    trackCards(cards);
+  }
+
   if (posting) {
     lastPostingUrl = posting.url;
     const postingEl = parser.getPostingElement(document);
     if (postingEl) {
       injector.injectLoading(postingEl);
+    }
+
+    const cardEl = cardElements.get(normalizeJobUrl(posting.url));
+    if (cardEl) {
+      injector.injectLoading(cardEl);
     }
 
     const message: ScoreJobMessage = {
@@ -134,16 +140,12 @@ function init(customPages: CustomPageConfig[]) {
         if (el) {
           injector.inject(el, score);
         }
-        const cardEl = cardElements.get(posting.url);
-        if (cardEl) {
-          injector.inject(cardEl, score);
+        const card = cardElements.get(normalizeJobUrl(posting.url));
+        if (card) {
+          injector.inject(card, score);
         }
       }
     });
-  }
-
-  if (cards.length > 0) {
-    scoreCards(cards);
   }
 
   observer = new MutationObserver((mutations) => {
@@ -164,12 +166,12 @@ function init(customPages: CustomPageConfig[]) {
     scoreAndBadgePosting();
 
     const newCards = parser.parseJobCards(document);
-    const unprocessed = newCards.filter(
-      (card) => !card.element.querySelector("[data-ghost-post-badge]")
+    const untracked = newCards.filter(
+      (card) => !cardElements.has(normalizeJobUrl(card.url))
     );
 
-    if (unprocessed.length > 0) {
-      scoreCards(unprocessed);
+    if (untracked.length > 0) {
+      trackCards(untracked);
     }
   });
 
