@@ -36,7 +36,7 @@ npm run build
 
 ### Chrome Web Store
 
-Coming soon.
+https://chromewebstore.google.com/detail/ghost-post/djgegpommklkillcbapokgoicohajnfl
 
 ## Configuration
 
